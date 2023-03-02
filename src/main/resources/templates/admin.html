@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:th="https://www.thymeleaf.org"
+>
+<head>
+    <title>ADMIN</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<header>
+
+    <br>
+    <th:block th:text="${user.getEmail()}"></th:block>
+    with roles
+    <th:block th:each="role: ${user.getRoles()}">
+        <span th:text="${role.getName()}">_</span>
+    </th:block>
+    <br>
+
+
+</header>
+
+</body>
+</html>
