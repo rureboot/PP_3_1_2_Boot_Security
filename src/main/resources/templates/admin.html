@@ -2,29 +2,55 @@
 <html lang="en"
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:th="https://www.thymeleaf.org"
 >
 <head>
     <title>ADMIN</title>
     <style>
-        h1 {
-            text-align: center;
-        }
+
     </style>
 </head>
 <body>
 <header>
-
     <br>
-    <th:block th:text="${user.getEmail()}"></th:block>
+    <th:block th:text="${currentUser.getEmail()}"></th:block>
     with roles
-    <th:block th:each="role: ${user.getRoles()}">
-        <span th:text="${role.getName()}">_</span>
+    <th:block th:each="role: ${currentUser.getRoles()}">
+        <span th:text="${role.getPlaintRole()}">_</span>
     </th:block>
+    <h2><a href="/logout">logout</a></h2>
     <br>
-
-
 </header>
+
+<table>
+    <tr>
+        <th>id</th>
+        <th>username</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th> edit</th>
+        <th> delete</th>
+    </tr>
+    <tr th:each="user:${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.username}"></td>
+        <td th:text="${user.firstName}"></td>
+        <td th:text="${user.lastName}"></td>
+        <td th:text="${user.email}"></td>
+        <td>
+            <th:block th:each="role:${user.roles}">
+                <th:block th:text="${role.getPlaintRole()}"></th:block>
+            </th:block>
+        </td>
+
+
+        <td><a th:href="@{/admin/edit(id = ${user.id})}">edit</a></td>
+
+        <td><a th:href="@{/admin/delete(id=${user.id})}">delete</a></td>
+    </tr>
+</table>
+<a href="/admin/userForm">ADD USER</a>
 
 </body>
 </html>

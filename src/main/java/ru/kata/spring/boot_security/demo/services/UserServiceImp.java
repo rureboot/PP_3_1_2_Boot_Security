@@ -12,17 +12,15 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
-import javax.persistence.PersistenceContext;
-import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImp implements UserDetailsService, UserService {
 
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
 
     @Autowired
@@ -32,6 +30,8 @@ public class UserServiceImp implements UserDetailsService, UserService {
         this.roleRepository = roleRepository;
         initAdmin();
     }
+
+
 
     @Override
     @Transactional
@@ -50,9 +50,48 @@ public class UserServiceImp implements UserDetailsService, UserService {
     }
 
     @Override
-    public void Save(User user) {
-        roleRepository.findById(1L);
+    public void save(User user) {
+
+        for (String roleName : user.getListPossibleRoles()) {
+            Role role = roleRepository.findByName(roleName);
+            user.addRole(role);
+        }
+        Long userId;
+        if (( userId = user.getId()) == null || !user.getPassword().equals("leave old password")) {
+
+            BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+            String encryptedPassword = bCryptPasswordEncoder.encode(user.getPassword());
+            user.setPassword(encryptedPassword);
+        }else {
+            Optional<User> oldUserData = userRepository.findById(userId);
+            user.setPassword(oldUserData.get().getPassword());
+        }
+
+        userRepository.save(user);
     }
+
+    @Override
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public void deleteById(Long id) {
+
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Role> findAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Override
+    public User findById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+
 
 
     @Transactional
@@ -74,8 +113,14 @@ public class UserServiceImp implements UserDetailsService, UserService {
                 roleAdmin.setName("ROLE_ADMIN");
                 roleRepository.save(roleAdmin);
             }
+            Role roleUser = roleRepository.findByName("ROLE_USER");
+            if (roleUser == null) {
+                roleUser = new Role();
+                roleUser.setName("ROLE_USER");
+                roleRepository.save(roleUser);
+            }
 
-            userAdmin.setRoles(Arrays.asList(roleAdmin));
+            userAdmin.setRoles(Arrays.asList(roleAdmin, roleUser));
             userRepository.save(userAdmin);
 
 
