@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 @EnableWebSecurity
@@ -40,35 +41,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll();
     }
 
-    //     аутентификация inMemory
-//    @Bean
-//    @Override
-//    public UserDetailsService userDetailsService() {
-//        UserDetails user =
-//                User.withDefaultPasswordEncoder()
-//                        .username("user")
-//                        .password("user")
-//                        .roles("USER")
-//
-//                        .build();
-//
-//        UserDetails admin = User.builder()
-//                .username("admin")
-//                .password("{noop}admin")
-//                .roles("ADMIN", "USER")
-//                .build();
-//
-//
-//        return new InMemoryUserDetailsManager(user, admin);
-//    }
-
-//    @Bean
-//    public PasswordEncoder encoder (){
-//        return NoOpPasswordEncoder.getInstance();
-//    }
-
     @Bean
-    public static BCryptPasswordEncoder encoder(){
+    public static PasswordEncoder encoder(){
         return new BCryptPasswordEncoder();
     }
 

@@ -1,10 +1,12 @@
 package ru.kata.spring.boot_security.demo.services;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
@@ -12,22 +14,22 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserServiceImp implements UserDetailsService, UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder encoder;
 
 
     @Autowired
 
-    public UserServiceImp(UserRepository userRepository, RoleRepository roleRepository) {
+    public UserServiceImp(UserRepository userRepository, RoleRepository roleRepository,  PasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.encoder = encoder;
         initAdmin();
     }
 
@@ -41,6 +43,7 @@ public class UserServiceImp implements UserDetailsService, UserService {
         if (user == null) {
             throw new UsernameNotFoundException("User " + username + " not found in DB");
         }
+        Hibernate.initialize(user.getRoles());
         return user;
     }
 
@@ -59,8 +62,8 @@ public class UserServiceImp implements UserDetailsService, UserService {
         Long userId;
         if (( userId = user.getId()) == null || !user.getPassword().equals("leave old password")) {
 
-            BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-            String encryptedPassword = bCryptPasswordEncoder.encode(user.getPassword());
+
+            String encryptedPassword = encoder.encode(user.getPassword());
             user.setPassword(encryptedPassword);
         }else {
             Optional<User> oldUserData = userRepository.findById(userId);
@@ -103,8 +106,8 @@ public class UserServiceImp implements UserDetailsService, UserService {
             userAdmin = new User();
             userAdmin.setUsername("admin");
             userAdmin.setEmail("admin@admin");
-            BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-            userAdmin.setPassword(bCryptPasswordEncoder.encode("admin"));
+
+            userAdmin.setPassword(encoder.encode("admin"));
 
             Role roleAdmin = roleRepository.findByName("ROLE_ADMIN");
             if (roleAdmin == null) {
@@ -120,7 +123,10 @@ public class UserServiceImp implements UserDetailsService, UserService {
                 roleRepository.save(roleUser);
             }
 
-            userAdmin.setRoles(Arrays.asList(roleAdmin, roleUser));
+            Set<Role> roleSet = new HashSet<>();
+            roleSet.add(roleAdmin);
+            roleSet.add(roleUser);
+            userAdmin.setRoles(roleSet);
             userRepository.save(userAdmin);
 
 

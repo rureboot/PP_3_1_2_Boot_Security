@@ -28,7 +28,6 @@ public class AdminController {
         User currentUser = userService.findByUserName(currentUserName);
         List<User> users = userService.findAll();
 
-
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("users", users);
 
