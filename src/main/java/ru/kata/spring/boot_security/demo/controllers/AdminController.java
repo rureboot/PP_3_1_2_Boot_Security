@@ -58,7 +58,7 @@ public class AdminController {
         user.setPassword("leave old password");
         List<Role> roles = userService.findAllRoles();
 
-        model.addAttribute("user",user);
+        model.addAttribute("user", user);
         model.addAttribute("roles", roles);
 
         return "userForm";

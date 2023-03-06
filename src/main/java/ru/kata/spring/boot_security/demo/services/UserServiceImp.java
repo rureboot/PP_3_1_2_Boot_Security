@@ -1,11 +1,9 @@
 package ru.kata.spring.boot_security.demo.services;
 
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,8 +11,12 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
+import ru.kata.spring.boot_security.demo.repositories.dao.UserDao;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserServiceImp implements UserDetailsService, UserService {
@@ -24,12 +26,18 @@ public class UserServiceImp implements UserDetailsService, UserService {
     private final PasswordEncoder encoder;
 
 
+    private final UserDao userDao;
+
+
+
     @Autowired
 
-    public UserServiceImp(UserRepository userRepository, RoleRepository roleRepository,  PasswordEncoder encoder) {
+    public UserServiceImp(UserRepository userRepository, RoleRepository roleRepository,
+                          PasswordEncoder encoder, UserDao userDao) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.encoder = encoder;
+        this.userDao = userDao;
         initAdmin();
     }
 
@@ -39,11 +47,11 @@ public class UserServiceImp implements UserDetailsService, UserService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username);
+        User user = getInitializedUserByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User " + username + " not found in DB");
         }
-        Hibernate.initialize(user.getRoles());
+
         return user;
     }
 
@@ -92,6 +100,13 @@ public class UserServiceImp implements UserDetailsService, UserService {
     @Override
     public User findById(Long id) {
         return userRepository.findById(id).orElse(null);
+    }
+
+
+    private User getInitializedUserByUsername(String username) {
+
+        User user = userDao.getInitializedUser(username);
+        return user;
     }
 
 
