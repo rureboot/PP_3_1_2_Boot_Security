@@ -11,7 +11,7 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
-import ru.kata.spring.boot_security.demo.repositories.dao.UserDao;
+
 
 import java.util.HashSet;
 import java.util.List;
@@ -26,18 +26,17 @@ public class UserServiceImp implements UserDetailsService, UserService {
     private final PasswordEncoder encoder;
 
 
-    private final UserDao userDao;
+
 
 
 
     @Autowired
 
     public UserServiceImp(UserRepository userRepository, RoleRepository roleRepository,
-                          PasswordEncoder encoder, UserDao userDao) {
+                          PasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.encoder = encoder;
-        this.userDao = userDao;
         initAdmin();
     }
 
@@ -47,7 +46,7 @@ public class UserServiceImp implements UserDetailsService, UserService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = getInitializedUserByUsername(username);
+        User user = findByUserName(username);
         if (user == null) {
             throw new UsernameNotFoundException("User " + username + " not found in DB");
         }
@@ -68,12 +67,12 @@ public class UserServiceImp implements UserDetailsService, UserService {
             user.addRole(role);
         }
         Long userId;
-        if (( userId = user.getId()) == null || !user.getPassword().equals("leave old password")) {
+        if ((userId = user.getId()) == null || !user.getPassword().equals("leave old password")) {
 
 
             String encryptedPassword = encoder.encode(user.getPassword());
             user.setPassword(encryptedPassword);
-        }else {
+        } else {
             Optional<User> oldUserData = userRepository.findById(userId);
             user.setPassword(oldUserData.get().getPassword());
         }
@@ -101,15 +100,6 @@ public class UserServiceImp implements UserDetailsService, UserService {
     public User findById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
-
-
-    private User getInitializedUserByUsername(String username) {
-
-        User user = userDao.getInitializedUser(username);
-        return user;
-    }
-
-
 
 
     @Transactional
